@@ -1,0 +1,124 @@
+:root {
+    --purple: #bc13fe;
+    --purple-glow: rgba(188, 19, 254, 0.4);
+    --bg: #0a0a0c;
+    --card: #141417;
+    --text: #e0e0e0;
+}
+
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    overflow-x: hidden;
+}
+
+.scanlines {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.05) 50%);
+    background-size: 100% 4px;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+.glass-nav {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px 40px;
+    background: rgba(20, 20, 23, 0.8);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(188, 19, 254, 0.2);
+}
+
+.neon-purple {
+    font-weight: 900;
+    color: var(--purple);
+    text-shadow: 0 0 10px var(--purple-glow);
+    letter-spacing: 2px;
+}
+
+.container {
+    max-width: 1000px;
+    margin: 60px auto;
+    padding: 20px;
+}
+
+.upload-zone {
+    border: 2px dashed rgba(188, 19, 254, 0.3);
+    border-radius: 20px;
+    padding: 80px 40px;
+    text-align: center;
+    transition: 0.3s;
+    background: var(--card);
+}
+
+.upload-zone.drag-over {
+    border-color: var(--purple);
+    background: rgba(188, 19, 254, 0.05);
+}
+
+.icon { font-size: 3rem; margin-bottom: 20px; }
+
+.btn-primary {
+    background: var(--purple);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 8px;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 0 15px var(--purple-glow);
+}
+
+.toolbar {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.file-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.file-card {
+    background: var(--card);
+    border: 1px solid #222;
+    padding: 20px;
+    border-radius: 12px;
+    position: relative;
+    text-align: center;
+}
+
+.file-card .remove {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    cursor: pointer;
+    color: #ff4444;
+}
+
+.hidden { display: none; }
+
+.btn-action {
+    background: #00f3ff;
+    color: black;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.btn-danger {
+    background: #ff4444;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 800;
+    cursor: pointer;
+}

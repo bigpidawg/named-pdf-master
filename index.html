@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF MASTER | Jump Your FICO</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono&display=swap" rel="stylesheet">
+</head>
+<body class="wiz-theme">
+    <div class="scanlines"></div>
+    
+    <nav class="glass-nav">
+        <div class="logo">
+            <span class="neon-purple">PDF MASTER</span>
+            <span class="tag">INTERNAL TOOL</span>
+        </div>
+        <div class="status-pill"><span class="pulse"></span> SYSTEM READY</div>
+    </nav>
+
+    <main class="container">
+        <section class="upload-zone" id="drop-zone">
+            <input type="file" id="file-input" multiple accept=".pdf" hidden>
+            <div class="upload-content">
+                <div class="icon">📂</div>
+                <h2>Drop PDFs here or click to upload</h2>
+                <p>Upload multiple files to merge, reorder, or edit.</p>
+                <button class="btn-primary" onclick="document.getElementById('file-input').click()">SELECT FILES</button>
+            </div>
+        </section>
+
+        <section id="editor-ui" class="hidden">
+            <div class="toolbar">
+                <button class="btn-action" onclick="mergeAll()">MERGE & DOWNLOAD</button>
+                <button class="btn-danger" onclick="resetEditor()">CLEAR ALL</button>
+            </div>
+            
+            <div id="file-list" class="file-grid">
+                <!-- Files will appear here -->
+            </div>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
