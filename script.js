@@ -101,30 +101,33 @@ async function addTextOverlay() {
 }
 
 async function mergeAll() {
-    const { PDFDocument } = PDFLib;
-    const mergedPdf = await PDFDocument.create();
+    try {
+        const { PDFDocument } = PDFLib;
+        const mergedPdf = await PDFDocument.create();
 
-    for (const file of uploadedFiles) {
-        const arrayBuffer = await file.arrayBuffer();
-        const pdf = await PDFDocument.load(arrayBuffer);
-        const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
-        copiedPages.forEach((page) => mergedPdf.addPage(page));
-    }
+        for (const file of uploadedFiles) {
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await PDFDocument.load(arrayBuffer);
+            
+            // This is the critical step: copy pages from source to target
+            const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+            copiedPages.forEach((page) => mergedPdf.addPage(page));
+        }
 
-    const pdfBytes = await mergedPdf.save();
-    download(pdfBytes, "merged_document.pdf", "application/pdf");
-}
-
-function download(data, filename, type) {
-    const file = new Blob([data], { type: type });
-    const a = document.createElement("a");
-    const url = URL.createObjectURL(file);
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(() => {
+        const pdfBytes = await mergedPdf.save();
+        
+        // Simple client-side download trigger
+        const blob = new Blob([pdfBytes], { type: "application/pdf" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "merged_document.pdf";
+        document.body.appendChild(a);
+        a.click();
         document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-    }, 0);
+        URL.revokeObjectURL(url);
+    } catch (err) {
+        console.error(err);
+        alert("Error merging PDFs: " + err.message);
+    }
 }
