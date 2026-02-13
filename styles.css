@@ -76,6 +76,27 @@ body {
     display: flex;
     gap: 15px;
     margin-bottom: 30px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.tool-group {
+    display: flex;
+    gap: 10px;
+    background: rgba(255,255,255,0.05);
+    padding: 5px 15px;
+    border-radius: 8px;
+    border: 1px solid rgba(188, 19, 254, 0.2);
+}
+
+#overlay-text {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--purple);
+    color: white;
+    padding: 5px;
+    outline: none;
+    font-family: inherit;
 }
 
 .file-grid {

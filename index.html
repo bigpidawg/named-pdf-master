@@ -33,6 +33,10 @@
         <section id="editor-ui" class="hidden">
             <div class="toolbar">
                 <button class="btn-action" onclick="mergeAll()">MERGE & DOWNLOAD</button>
+                <div class="tool-group">
+                    <input type="text" id="overlay-text" placeholder="Text to add...">
+                    <button class="btn-primary" onclick="addTextOverlay()">ADD TEXT TO ALL PAGES</button>
+                </div>
                 <button class="btn-danger" onclick="resetEditor()">CLEAR ALL</button>
             </div>
             

@@ -68,6 +68,38 @@ function resetEditor() {
     editorUI.classList.add('hidden');
 }
 
+async function addTextOverlay() {
+    const text = document.getElementById('overlay-text').value;
+    if (!text) return alert("Enter text first");
+    
+    const { PDFDocument, rgb, StandardFonts } = PDFLib;
+    
+    // We modify the files in the uploadedFiles array
+    for (let i = 0; i < uploadedFiles.length; i++) {
+        const file = uploadedFiles[i];
+        const arrayBuffer = await file.arrayBuffer();
+        const pdfDoc = await PDFDocument.load(arrayBuffer);
+        const helveticaFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+        const pages = pdfDoc.getPages();
+        
+        pages.forEach(page => {
+            const { width, height } = page.getSize();
+            page.drawText(text, {
+                x: 50,
+                y: height - 50,
+                size: 20,
+                font: helveticaFont,
+                color: rgb(0.74, 0.07, 0.99), // Purple to match theme
+            });
+        });
+        
+        const pdfBytes = await pdfDoc.save();
+        uploadedFiles[i] = new File([pdfBytes], file.name, { type: "application/pdf" });
+    }
+    alert("Text added to all pages in all uploaded files!");
+    renderFiles();
+}
+
 async function mergeAll() {
     const { PDFDocument } = PDFLib;
     const mergedPdf = await PDFDocument.create();
