@@ -87,11 +87,11 @@ function renderFiles() {
 
     const queuedCount = getQueuedCount();
     const mergeBtn = document.querySelector('.btn-action[onclick="mergeAll()"]');
-    if (mergeBtn) {
-        mergeBtn.textContent = queuedCount > 0
-            ? `MERGE QUEUED (${queuedCount}) & DOWNLOAD`
-            : 'MERGE & DOWNLOAD';
-    }
+    const previewAllBtn = document.querySelector('.btn-action[onclick="generateFinalPreview()"]');
+    
+    const labelSuffix = queuedCount > 0 ? ` (${queuedCount})` : '';
+    if (mergeBtn) mergeBtn.textContent = `MERGE${labelSuffix} & DOWNLOAD`;
+    if (previewAllBtn) previewAllBtn.textContent = `PREVIEW FINAL${labelSuffix}`;
 
     fileList.innerHTML = '';
     uploadedFiles.forEach((item, index) => {
@@ -310,40 +310,63 @@ async function addTextOverlay() {
     renderFiles();
 }
 
+async function generateFinalPreview() {
+    try {
+        previewTitle.textContent = "Final Document Preview (Generating...)";
+        previewBody.innerHTML = 'Merging files for preview...';
+        previewModal.classList.add('open');
+        editButton.classList.add('hidden');
+
+        const pdfBytes = await buildMergedPdfBytes();
+        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+        
+        previewTitle.textContent = "Final Document Preview";
+        previewBody.innerHTML = `<embed src="${url}" type="application/pdf">`;
+    } catch (err) {
+        console.error(err);
+        alert('Error generating preview: ' + err.message);
+        closePreview();
+    }
+}
+
+async function buildMergedPdfBytes() {
+    const { PDFDocument } = PDFLib;
+    const mergedPdf = await PDFDocument.create();
+
+    const queuedItems = uploadedFiles.filter(item => item.queued);
+    const itemsToMerge = queuedItems.length > 0 ? queuedItems : uploadedFiles;
+
+    const hasPdf = itemsToMerge.some((item) => isPdfFile(item.file));
+    if (!hasPdf) {
+        // Start from a blank PDF when user only selected photos
+        mergedPdf.addPage([612, 792]);
+    }
+
+    for (const item of itemsToMerge) {
+        const file = item.file;
+        let sourcePdf;
+
+        if (isPdfFile(file)) {
+            const arrayBuffer = await file.arrayBuffer();
+            sourcePdf = await PDFDocument.load(arrayBuffer);
+        } else if (isImageFile(file) || isPhotoCandidate(file)) {
+            const pdfBytes = await imageFileToPdf(file);
+            sourcePdf = await PDFDocument.load(pdfBytes);
+        } else {
+            continue;
+        }
+
+        const copiedPages = await mergedPdf.copyPages(sourcePdf, sourcePdf.getPageIndices());
+        copiedPages.forEach((page) => mergedPdf.addPage(page));
+    }
+
+    return await mergedPdf.save();
+}
+
 async function mergeAll() {
     try {
-        const { PDFDocument } = PDFLib;
-        const mergedPdf = await PDFDocument.create();
-
-        const queuedItems = uploadedFiles.filter(item => item.queued);
-        const itemsToMerge = queuedItems.length > 0 ? queuedItems : uploadedFiles;
-
-        const hasPdf = itemsToMerge.some((item) => isPdfFile(item.file));
-        if (!hasPdf) {
-            // Start from a blank PDF when user only selected photos
-            mergedPdf.addPage([612, 792]);
-        }
-
-        for (const item of itemsToMerge) {
-            const file = item.file;
-            let sourcePdf;
-
-            if (isPdfFile(file)) {
-                const arrayBuffer = await file.arrayBuffer();
-                sourcePdf = await PDFDocument.load(arrayBuffer);
-            } else if (isImageFile(file) || isPhotoCandidate(file)) {
-                const pdfBytes = await imageFileToPdf(file);
-                sourcePdf = await PDFDocument.load(pdfBytes);
-            } else {
-                continue;
-            }
-
-            const copiedPages = await mergedPdf.copyPages(sourcePdf, sourcePdf.getPageIndices());
-            copiedPages.forEach((page) => mergedPdf.addPage(page));
-        }
-
-        const pdfBytes = await mergedPdf.save();
-
+        const pdfBytes = await buildMergedPdfBytes();
         const blob = new Blob([pdfBytes], { type: 'application/pdf' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -355,6 +378,7 @@ async function mergeAll() {
         URL.revokeObjectURL(url);
 
         // If queue mode was used, remove those queued items for next run
+        const queuedItems = uploadedFiles.filter(item => item.queued);
         if (queuedItems.length > 0) {
             uploadedFiles = uploadedFiles.filter(item => !item.queued);
             if (uploadedFiles.length === 0) {
