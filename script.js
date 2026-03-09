@@ -324,17 +324,26 @@ async function generateFinalPreview() {
     try {
         console.log("Generating final preview...");
         previewTitle.textContent = "Final Document Preview (Generating...)";
-        previewBody.innerHTML = 'Merging files for preview...';
+        previewBody.innerHTML = '<div style="color:white; padding:20px;">Merging files for preview... please wait.</div>';
         previewModal.classList.add('open');
         editButton.classList.add('hidden');
 
         const pdfBytes = await buildMergedPdfBytes();
+        alert("PDF Bytes generated: " + pdfBytes.length + " bytes. Creating blob...");
+        
         const blob = new Blob([pdfBytes], { type: 'application/pdf' });
         const url = URL.createObjectURL(blob);
+        alert("Blob URL created: " + url);
         
         previewTitle.textContent = "Final Document Preview";
-        // Use an iframe instead of embed for better cross-browser compatibility
-        previewBody.innerHTML = `<iframe src="${url}" style="width:100%; height:70vh; border:none;"></iframe>`;
+        // Attempt both iframe and embed for maximum fallback coverage
+        previewBody.innerHTML = `
+            <object data="${url}" type="application/pdf" style="width:100%; height:70vh;">
+                <iframe src="${url}" style="width:100%; height:70vh; border:none;">
+                    <p>Your browser does not support PDFs. <a href="${url}" target="_blank">Download to view</a></p>
+                </iframe>
+            </object>
+        `;
     } catch (err) {
         console.error("Preview generation failed:", err);
         alert('Error generating preview: ' + err.message);
