@@ -5,6 +5,9 @@ const fileInput = document.getElementById('file-input');
 const photoInput = document.getElementById('photo-input');
 const fileList = document.getElementById('file-list');
 const editorUI = document.getElementById('editor-ui');
+const previewModal = document.getElementById('preview-modal');
+const previewBody = document.getElementById('preview-body');
+const previewTitle = document.getElementById('preview-title');
 
 function isPdfFile(file) {
     return file.type === 'application/pdf' || (file.name || '').toLowerCase().endsWith('.pdf');
@@ -93,8 +96,10 @@ function renderFiles() {
         card.innerHTML = `
             <span class="remove" onclick="removeFile(${index})">×</span>
             <div style="font-size: 0.75rem; opacity: 0.8; margin-bottom: 6px;">#${index + 1}</div>
-            <div style="font-size: 2rem; margin-bottom: 10px;">${getFileIcon(file)}</div>
-            <div style="font-size: 0.8rem; word-break: break-all; margin-bottom: 12px;">${file.name}</div>
+            <div onclick="openPreview(${index})" style="cursor:pointer">
+                <div style="font-size: 2rem; margin-bottom: 10px;">${getFileIcon(file)}</div>
+                <div style="font-size: 0.8rem; word-break: break-all; margin-bottom: 12px; color: var(--purple); text-decoration: underline;">${file.name}</div>
+            </div>
             <div class="order-controls">
                 <button class="btn-order" onclick="moveFile(${index}, -1)" ${index === 0 ? 'disabled' : ''}>↑</button>
                 <button class="btn-order" onclick="moveFile(${index}, 1)" ${index === uploadedFiles.length - 1 ? 'disabled' : ''}>↓</button>
@@ -133,6 +138,26 @@ function resetEditor() {
     uploadedFiles = [];
     dropZone.classList.remove('hidden');
     editorUI.classList.add('hidden');
+}
+
+async function openPreview(index) {
+    const file = uploadedFiles[index].file;
+    previewTitle.textContent = `Preview: ${file.name}`;
+    previewBody.innerHTML = 'Loading...';
+    previewModal.classList.add('open');
+
+    const url = URL.createObjectURL(file);
+    
+    if (isPdfFile(file)) {
+        previewBody.innerHTML = `<embed src="${url}" type="application/pdf">`;
+    } else {
+        previewBody.innerHTML = `<img src="${url}" alt="Preview">`;
+    }
+}
+
+function closePreview() {
+    previewModal.classList.remove('open');
+    previewBody.innerHTML = '';
 }
 
 async function imageFileToPdf(file, overlayText = '') {

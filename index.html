@@ -50,6 +50,22 @@
                 <!-- Files will appear here -->
             </div>
         </section>
+
+        <!-- Preview Modal -->
+        <div id="preview-modal" class="modal hidden">
+            <div class="modal-card preview-card">
+                <div class="modal-header">
+                    <h3 id="preview-title">File Preview</h3>
+                    <span class="close-modal" onclick="closePreview()">×</span>
+                </div>
+                <div id="preview-body" class="preview-body">
+                    <!-- Image or PDF preview will load here -->
+                </div>
+                <div class="modal-actions">
+                    <button class="btn-danger" onclick="closePreview()">CLOSE</button>
+                </div>
+            </div>
+        </div>
     </main>
 
     <script src="script.js"></script>
