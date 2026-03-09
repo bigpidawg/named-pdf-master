@@ -7,11 +7,13 @@ const editorUI = document.getElementById('editor-ui');
 const pickerModal = document.getElementById('picker-modal');
 
 function openPickerModeChooser() {
-    pickerModal.classList.remove('hidden');
+    if (!pickerModal) return;
+    pickerModal.classList.add('open');
 }
 
 function closePickerModeChooser() {
-    pickerModal.classList.add('hidden');
+    if (!pickerModal) return;
+    pickerModal.classList.remove('open');
 }
 
 function choosePickerMode(mode) {
@@ -27,11 +29,13 @@ function choosePickerMode(mode) {
     closePickerModeChooser();
 }
 
-pickerModal.addEventListener('click', (e) => {
-    if (e.target === pickerModal) {
-        closePickerModeChooser();
-    }
-});
+if (pickerModal) {
+    pickerModal.addEventListener('click', (e) => {
+        if (e.target === pickerModal) {
+            closePickerModeChooser();
+        }
+    });
+}
 
 // Drag and Drop Handlers
 dropZone.addEventListener('dragover', (e) => {

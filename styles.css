@@ -122,7 +122,7 @@ body {
     color: #ff4444;
 }
 
-.hidden { display: none; }
+.hidden { display: none !important; }
 
 .btn-action {
     background: #00f3ff;
@@ -148,10 +148,14 @@ body {
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.55);
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
     z-index: 1100;
+}
+
+.modal.open {
+    display: flex;
 }
 
 .modal-card {
