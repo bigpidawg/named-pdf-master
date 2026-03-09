@@ -312,6 +312,7 @@ async function addTextOverlay() {
 
 async function generateFinalPreview() {
     try {
+        console.log("Generating final preview...");
         previewTitle.textContent = "Final Document Preview (Generating...)";
         previewBody.innerHTML = 'Merging files for preview...';
         previewModal.classList.add('open');
@@ -325,7 +326,7 @@ async function generateFinalPreview() {
         // Use an iframe instead of embed for better cross-browser compatibility
         previewBody.innerHTML = `<iframe src="${url}" style="width:100%; height:70vh; border:none;"></iframe>`;
     } catch (err) {
-        console.error(err);
+        console.error("Preview generation failed:", err);
         alert('Error generating preview: ' + err.message);
         closePreview();
     }
@@ -367,6 +368,7 @@ async function buildMergedPdfBytes() {
 
 async function mergeAll() {
     try {
+        console.log("Final merging and download...");
         const pdfBytes = await buildMergedPdfBytes();
         const blob = new Blob([pdfBytes], { type: 'application/pdf' });
         const url = URL.createObjectURL(blob);
@@ -389,7 +391,7 @@ async function mergeAll() {
             }
         }
     } catch (err) {
-        console.error(err);
+        console.error("Merge failed:", err);
         alert('Error merging files: ' + err.message);
     }
 }
