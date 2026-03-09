@@ -157,7 +157,7 @@ async function openPreview(index) {
     const url = URL.createObjectURL(file);
     
     if (isPdfFile(file)) {
-        previewBody.innerHTML = `<embed src="${url}" type="application/pdf">`;
+        previewBody.innerHTML = `<iframe src="${url}" style="width:100%; height:70vh; border:none;"></iframe>`;
         editButton.classList.add('hidden');
     } else {
         previewBody.innerHTML = `<img src="${url}" alt="Preview">`;
@@ -322,7 +322,8 @@ async function generateFinalPreview() {
         const url = URL.createObjectURL(blob);
         
         previewTitle.textContent = "Final Document Preview";
-        previewBody.innerHTML = `<embed src="${url}" type="application/pdf">`;
+        // Use an iframe instead of embed for better cross-browser compatibility
+        previewBody.innerHTML = `<iframe src="${url}" style="width:100%; height:70vh; border:none;"></iframe>`;
     } catch (err) {
         console.error(err);
         alert('Error generating preview: ' + err.message);
