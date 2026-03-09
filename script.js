@@ -78,8 +78,13 @@ function renderFiles() {
         card.className = 'file-card';
         card.innerHTML = `
             <span class="remove" onclick="removeFile(${index})">×</span>
+            <div style="font-size: 0.75rem; opacity: 0.8; margin-bottom: 6px;">#${index + 1}</div>
             <div style="font-size: 2rem; margin-bottom: 10px;">${getFileIcon(file)}</div>
-            <div style="font-size: 0.8rem; word-break: break-all;">${file.name}</div>
+            <div style="font-size: 0.8rem; word-break: break-all; margin-bottom: 12px;">${file.name}</div>
+            <div class="order-controls">
+                <button class="btn-order" onclick="moveFile(${index}, -1)" ${index === 0 ? 'disabled' : ''}>↑</button>
+                <button class="btn-order" onclick="moveFile(${index}, 1)" ${index === uploadedFiles.length - 1 ? 'disabled' : ''}>↓</button>
+            </div>
         `;
         fileList.appendChild(card);
     });
@@ -92,6 +97,16 @@ function removeFile(index) {
     } else {
         renderFiles();
     }
+}
+
+function moveFile(index, direction) {
+    const newIndex = index + direction;
+    if (newIndex < 0 || newIndex >= uploadedFiles.length) return;
+
+    const temp = uploadedFiles[index];
+    uploadedFiles[index] = uploadedFiles[newIndex];
+    uploadedFiles[newIndex] = temp;
+    renderFiles();
 }
 
 function resetEditor() {

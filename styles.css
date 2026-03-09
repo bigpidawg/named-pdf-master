@@ -129,6 +129,27 @@ body {
     color: #ff4444;
 }
 
+.order-controls {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-order {
+    border: 1px solid rgba(188, 19, 254, 0.4);
+    background: rgba(188, 19, 254, 0.12);
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.btn-order:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
 .hidden { display: none; }
 
 .btn-action {
