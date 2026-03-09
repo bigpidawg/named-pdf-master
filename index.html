@@ -21,14 +21,26 @@
 
     <main class="container">
         <section class="upload-zone" id="drop-zone">
-            <input type="file" id="file-input" multiple accept=".pdf" hidden>
+            <input type="file" id="file-input" multiple accept=".pdf,image/*" hidden>
             <div class="upload-content">
                 <div class="icon">📂</div>
-                <h2>Drop PDFs here or click to upload</h2>
-                <p>Upload multiple files to merge, reorder, or edit.</p>
-                <button class="btn-primary" onclick="document.getElementById('file-input').click()">SELECT FILES</button>
+                <h2>Drop PDFs/Photos here or click to upload</h2>
+                <p>Upload PDFs and images to merge, reorder, or edit.</p>
+                <button class="btn-primary" onclick="openPickerModeChooser()">SELECT FILES / PHOTOS</button>
             </div>
         </section>
+
+        <div id="picker-modal" class="modal hidden">
+            <div class="modal-card">
+                <h3>Choose what to pick</h3>
+                <p>Select one mode for this upload.</p>
+                <div class="modal-actions">
+                    <button class="btn-action" onclick="choosePickerMode('pdf')">PDF FILES</button>
+                    <button class="btn-primary" onclick="choosePickerMode('photo')">PHOTOS</button>
+                    <button class="btn-danger" onclick="closePickerModeChooser()">CANCEL</button>
+                </div>
+            </div>
+        </div>
 
         <section id="editor-ui" class="hidden">
             <div class="toolbar">
