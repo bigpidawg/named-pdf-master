@@ -16,9 +16,13 @@ function isImageFile(file) {
     return file.type.startsWith('image/') || imageExt.some(ext => name.endsWith(ext));
 }
 
+function isPhotoCandidate(file) {
+    return !isPdfFile(file);
+}
+
 function getFileIcon(file) {
     if (isPdfFile(file)) return '📄';
-    if (isImageFile(file)) return '🖼️';
+    if (isImageFile(file) || isPhotoCandidate(file)) return '🖼️';
     return '📁';
 }
 
@@ -39,18 +43,23 @@ dropZone.addEventListener('drop', (e) => {
 });
 
 fileInput.addEventListener('change', (e) => {
-    handleFiles(e.target.files);
+    handleFiles(e.target.files, 'pdf');
     fileInput.value = '';
 });
 
 photoInput.addEventListener('change', (e) => {
-    handleFiles(e.target.files);
+    handleFiles(e.target.files, 'photo');
     photoInput.value = '';
 });
 
-function handleFiles(files) {
+function handleFiles(files, source = 'any') {
     for (let file of files) {
-        if (isPdfFile(file) || isImageFile(file)) {
+        if (source === 'pdf' && isPdfFile(file)) {
+            uploadedFiles.push(file);
+        } else if (source === 'photo') {
+            // Allow all photo picker results (some mobile browsers provide weak MIME metadata)
+            uploadedFiles.push(file);
+        } else if (isPdfFile(file) || isImageFile(file)) {
             uploadedFiles.push(file);
         }
     }
@@ -172,7 +181,7 @@ async function addTextOverlay() {
 
             const pdfBytes = await pdfDoc.save();
             uploadedFiles[i] = new File([pdfBytes], file.name, { type: 'application/pdf' });
-        } else if (isImageFile(file)) {
+        } else if (isImageFile(file) || isPhotoCandidate(file)) {
             const pdfBytes = await imageFileToPdf(file, text);
             const pdfName = file.name.replace(/\.[^/.]+$/, '') + '.pdf';
             uploadedFiles[i] = new File([pdfBytes], pdfName, { type: 'application/pdf' });
@@ -188,13 +197,19 @@ async function mergeAll() {
         const { PDFDocument } = PDFLib;
         const mergedPdf = await PDFDocument.create();
 
+        const hasPdf = uploadedFiles.some((f) => isPdfFile(f));
+        if (!hasPdf) {
+            // Start from a blank PDF when user only selected photos
+            mergedPdf.addPage([612, 792]);
+        }
+
         for (const file of uploadedFiles) {
             let sourcePdf;
 
             if (isPdfFile(file)) {
                 const arrayBuffer = await file.arrayBuffer();
                 sourcePdf = await PDFDocument.load(arrayBuffer);
-            } else if (isImageFile(file)) {
+            } else if (isImageFile(file) || isPhotoCandidate(file)) {
                 const pdfBytes = await imageFileToPdf(file);
                 sourcePdf = await PDFDocument.load(pdfBytes);
             } else {
