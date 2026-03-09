@@ -61,6 +61,13 @@ body {
 
 .icon { font-size: 3rem; margin-bottom: 20px; }
 
+.upload-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
 .btn-primary {
     background: var(--purple);
     color: white;
