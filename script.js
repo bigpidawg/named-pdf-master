@@ -1,4 +1,4 @@
-let uploadedFiles = [];
+let uploadedFiles = []; // [{ file: File, queued: boolean }]
 
 const dropZone = document.getElementById('drop-zone');
 const fileInput = document.getElementById('file-input');
@@ -24,6 +24,10 @@ function getFileIcon(file) {
     if (isPdfFile(file)) return '📄';
     if (isImageFile(file) || isPhotoCandidate(file)) return '🖼️';
     return '📁';
+}
+
+function getQueuedCount() {
+    return uploadedFiles.filter(item => item.queued).length;
 }
 
 // Drag and Drop Handlers
@@ -55,12 +59,11 @@ photoInput.addEventListener('change', (e) => {
 function handleFiles(files, source = 'any') {
     for (let file of files) {
         if (source === 'pdf' && isPdfFile(file)) {
-            uploadedFiles.push(file);
+            uploadedFiles.push({ file, queued: false });
         } else if (source === 'photo') {
-            // Allow all photo picker results (some mobile browsers provide weak MIME metadata)
-            uploadedFiles.push(file);
+            uploadedFiles.push({ file, queued: false });
         } else if (isPdfFile(file) || isImageFile(file)) {
-            uploadedFiles.push(file);
+            uploadedFiles.push({ file, queued: false });
         }
     }
     renderFiles();
@@ -72,10 +75,21 @@ function renderFiles() {
         editorUI.classList.remove('hidden');
     }
 
+    const queuedCount = getQueuedCount();
+    const mergeBtn = document.querySelector('.btn-action[onclick="mergeAll()"]');
+    if (mergeBtn) {
+        mergeBtn.textContent = queuedCount > 0
+            ? `MERGE QUEUED (${queuedCount}) & DOWNLOAD`
+            : 'MERGE & DOWNLOAD';
+    }
+
     fileList.innerHTML = '';
-    uploadedFiles.forEach((file, index) => {
+    uploadedFiles.forEach((item, index) => {
+        const file = item.file;
         const card = document.createElement('div');
         card.className = 'file-card';
+        if (item.queued) card.classList.add('queued');
+
         card.innerHTML = `
             <span class="remove" onclick="removeFile(${index})">×</span>
             <div style="font-size: 0.75rem; opacity: 0.8; margin-bottom: 6px;">#${index + 1}</div>
@@ -84,6 +98,7 @@ function renderFiles() {
             <div class="order-controls">
                 <button class="btn-order" onclick="moveFile(${index}, -1)" ${index === 0 ? 'disabled' : ''}>↑</button>
                 <button class="btn-order" onclick="moveFile(${index}, 1)" ${index === uploadedFiles.length - 1 ? 'disabled' : ''}>↓</button>
+                <button class="btn-order btn-queue ${item.queued ? 'active' : ''}" onclick="toggleQueue(${index})">QUEUE</button>
             </div>
         `;
         fileList.appendChild(card);
@@ -106,6 +121,11 @@ function moveFile(index, direction) {
     const temp = uploadedFiles[index];
     uploadedFiles[index] = uploadedFiles[newIndex];
     uploadedFiles[newIndex] = temp;
+    renderFiles();
+}
+
+function toggleQueue(index) {
+    uploadedFiles[index].queued = !uploadedFiles[index].queued;
     renderFiles();
 }
 
@@ -175,7 +195,8 @@ async function addTextOverlay() {
     const { PDFDocument, rgb, StandardFonts } = PDFLib;
 
     for (let i = 0; i < uploadedFiles.length; i++) {
-        const file = uploadedFiles[i];
+        const item = uploadedFiles[i];
+        const file = item.file;
 
         if (isPdfFile(file)) {
             const arrayBuffer = await file.arrayBuffer();
@@ -195,11 +216,11 @@ async function addTextOverlay() {
             });
 
             const pdfBytes = await pdfDoc.save();
-            uploadedFiles[i] = new File([pdfBytes], file.name, { type: 'application/pdf' });
+            uploadedFiles[i].file = new File([pdfBytes], file.name, { type: 'application/pdf' });
         } else if (isImageFile(file) || isPhotoCandidate(file)) {
             const pdfBytes = await imageFileToPdf(file, text);
             const pdfName = file.name.replace(/\.[^/.]+$/, '') + '.pdf';
-            uploadedFiles[i] = new File([pdfBytes], pdfName, { type: 'application/pdf' });
+            uploadedFiles[i].file = new File([pdfBytes], pdfName, { type: 'application/pdf' });
         }
     }
 
@@ -212,13 +233,17 @@ async function mergeAll() {
         const { PDFDocument } = PDFLib;
         const mergedPdf = await PDFDocument.create();
 
-        const hasPdf = uploadedFiles.some((f) => isPdfFile(f));
+        const queuedItems = uploadedFiles.filter(item => item.queued);
+        const itemsToMerge = queuedItems.length > 0 ? queuedItems : uploadedFiles;
+
+        const hasPdf = itemsToMerge.some((item) => isPdfFile(item.file));
         if (!hasPdf) {
             // Start from a blank PDF when user only selected photos
             mergedPdf.addPage([612, 792]);
         }
 
-        for (const file of uploadedFiles) {
+        for (const item of itemsToMerge) {
+            const file = item.file;
             let sourcePdf;
 
             if (isPdfFile(file)) {
@@ -246,6 +271,16 @@ async function mergeAll() {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
+
+        // If queue mode was used, remove those queued items for next run
+        if (queuedItems.length > 0) {
+            uploadedFiles = uploadedFiles.filter(item => !item.queued);
+            if (uploadedFiles.length === 0) {
+                resetEditor();
+            } else {
+                renderFiles();
+            }
+        }
     } catch (err) {
         console.error(err);
         alert('Error merging files: ' + err.message);

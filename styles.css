@@ -121,6 +121,11 @@ body {
     text-align: center;
 }
 
+.file-card.queued {
+    border-color: rgba(188, 19, 254, 0.7);
+    box-shadow: 0 0 0 1px rgba(188, 19, 254, 0.35), 0 0 14px rgba(188, 19, 254, 0.2);
+}
+
 .file-card .remove {
     position: absolute;
     top: 10px;
@@ -148,6 +153,12 @@ body {
 .btn-order:disabled {
     opacity: 0.35;
     cursor: not-allowed;
+}
+
+.btn-queue.active {
+    background: var(--purple);
+    border-color: var(--purple);
+    box-shadow: 0 0 10px var(--purple-glow);
 }
 
 .hidden { display: none; }
