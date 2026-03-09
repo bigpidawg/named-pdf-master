@@ -144,8 +144,9 @@ function toggleQueue(index) {
 
 function duplicateFile(index) {
     const itemToDup = uploadedFiles[index];
-    // Shallow copy item, but it's fine since we don't modify the File object itself in-place usually
-    uploadedFiles.splice(index + 1, 0, { ...itemToDup, queued: false });
+    const originalFile = itemToDup.file;
+    const newFile = new File([originalFile], originalFile.name, { type: originalFile.type });
+    uploadedFiles.splice(index + 1, 0, { file: newFile, queued: false });
     renderFiles();
 }
 
