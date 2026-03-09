@@ -8,6 +8,13 @@ const editorUI = document.getElementById('editor-ui');
 const previewModal = document.getElementById('preview-modal');
 const previewBody = document.getElementById('preview-body');
 const previewTitle = document.getElementById('preview-title');
+const editButton = document.getElementById('edit-button');
+
+// Editor elements
+const editorModal = document.getElementById('editor-modal');
+const editingImage = document.getElementById('editing-image');
+let currentEditIndex = null;
+let cropper = null;
 
 function isPdfFile(file) {
     return file.type === 'application/pdf' || (file.name || '').toLowerCase().endsWith('.pdf');
@@ -142,6 +149,7 @@ function resetEditor() {
 
 async function openPreview(index) {
     const file = uploadedFiles[index].file;
+    currentEditIndex = index;
     previewTitle.textContent = `Preview: ${file.name}`;
     previewBody.innerHTML = 'Loading...';
     previewModal.classList.add('open');
@@ -150,14 +158,63 @@ async function openPreview(index) {
     
     if (isPdfFile(file)) {
         previewBody.innerHTML = `<embed src="${url}" type="application/pdf">`;
+        editButton.classList.add('hidden');
     } else {
         previewBody.innerHTML = `<img src="${url}" alt="Preview">`;
+        editButton.classList.remove('hidden');
     }
 }
 
 function closePreview() {
     previewModal.classList.remove('open');
     previewBody.innerHTML = '';
+}
+
+function startEditing() {
+    const file = uploadedFiles[currentEditIndex].file;
+    const url = URL.createObjectURL(file);
+    
+    editingImage.src = url;
+    previewModal.classList.remove('open');
+    editorModal.classList.add('open');
+
+    if (cropper) cropper.destroy();
+    
+    cropper = new Cropper(editingImage, {
+        viewMode: 1,
+        dragMode: 'crop',
+        autoCropArea: 0.8,
+        responsive: true,
+        restore: false,
+        checkCrossOrigin: false,
+        guides: true,
+        center: true,
+        highlight: false,
+        cropBoxMovable: true,
+        cropBoxResizable: true,
+        toggleDragModeOnDblclick: false,
+    });
+}
+
+function cancelEditing() {
+    editorModal.classList.remove('open');
+    if (cropper) cropper.destroy();
+    openPreview(currentEditIndex);
+}
+
+function saveEdit() {
+    if (!cropper) return;
+    
+    cropper.getCroppedCanvas().toBlob((blob) => {
+        const file = uploadedFiles[currentEditIndex].file;
+        const editedFile = new File([blob], file.name, { type: 'image/jpeg' });
+        
+        uploadedFiles[currentEditIndex].file = editedFile;
+        editorModal.classList.remove('open');
+        cropper.destroy();
+        renderFiles();
+        openPreview(currentEditIndex);
+    }, 'image/jpeg', 0.9);
 }
 
 async function imageFileToPdf(file, overlayText = '') {

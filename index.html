@@ -6,6 +6,8 @@
     <title>PDF MASTER | Jump Your FICO</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono&display=swap" rel="stylesheet">
 </head>
 <body class="wiz-theme">
@@ -62,7 +64,31 @@
                     <!-- Image or PDF preview will load here -->
                 </div>
                 <div class="modal-actions">
+                    <button id="edit-button" class="btn-action hidden" onclick="startEditing()">EDIT IMAGE</button>
                     <button class="btn-danger" onclick="closePreview()">CLOSE</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Editor Modal -->
+        <div id="editor-modal" class="modal hidden">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <h3>Edit Image</h3>
+                    <span class="close-modal" onclick="cancelEditing()">×</span>
+                </div>
+                <div class="editor-container">
+                    <img id="editing-image" src="" alt="Editing">
+                </div>
+                <div class="editor-toolbar">
+                    <button class="btn-order" onclick="cropper.rotate(-90)">↺ ROTATE</button>
+                    <button class="btn-order" onclick="cropper.rotate(90)">↻ ROTATE</button>
+                    <button class="btn-order" onclick="cropper.setDragMode('crop')">CROP MODE</button>
+                    <button class="btn-order" onclick="cropper.setDragMode('move')">MOVE MODE</button>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn-primary" onclick="saveEdit()">SAVE CHANGES</button>
+                    <button class="btn-danger" onclick="cancelEditing()">CANCEL</button>
                 </div>
             </div>
         </div>

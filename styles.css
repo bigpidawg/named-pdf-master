@@ -252,3 +252,25 @@ body {
     gap: 12px;
     justify-content: flex-end;
 }
+
+.editor-container {
+    flex: 1;
+    overflow: hidden;
+    background: #000;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    max-height: 60vh;
+}
+
+.editor-container img {
+    display: block;
+    max-width: 100%;
+}
+
+.editor-toolbar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
