@@ -81,7 +81,7 @@ body {
 
 .toolbar {
     display: flex;
-    gap: 15px;
+    gap: 12px;
     margin-bottom: 30px;
     flex-wrap: wrap;
     align-items: center;
