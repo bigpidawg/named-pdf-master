@@ -57,24 +57,13 @@ fileInput.addEventListener('change', (e) => {
     handleFiles(e.target.files);
 });
 
-function isPdfFile(file) {
-    const name = (file.name || '').toLowerCase();
-    return file.type === 'application/pdf' || name.endsWith('.pdf');
-}
-
-function isImageFile(file) {
-    const name = (file.name || '').toLowerCase();
-    const imageExt = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp', '.heic', '.heif'];
-    return file.type.startsWith('image/') || imageExt.some(ext => name.endsWith(ext));
-}
-
 function isSupportedFile(file) {
-    return isPdfFile(file) || isImageFile(file);
+    return file.type === 'application/pdf' || file.type.startsWith('image/');
 }
 
 function getFileIcon(file) {
-    if (isPdfFile(file)) return '📄';
-    if (isImageFile(file)) return '🖼️';
+    if (file.type === 'application/pdf') return '📄';
+    if (file.type.startsWith('image/')) return '🖼️';
     return '📁';
 }
 
@@ -121,56 +110,36 @@ function resetEditor() {
     editorUI.classList.add('hidden');
 }
 
-async function fileToDataURL(file) {
-    return await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = () => reject(new Error('Could not read image file.'));
-        reader.readAsDataURL(file);
-    });
-}
-
-async function loadImageFromFile(file) {
-    const src = await fileToDataURL(file);
-    return await new Promise((resolve, reject) => {
-        const img = new Image();
-        img.onload = () => resolve(img);
-        img.onerror = () => reject(new Error('Could not decode image.'));
-        img.src = src;
-    });
-}
-
 async function imageFileToPdf(file, overlayText = '') {
     const { PDFDocument, rgb, StandardFonts } = PDFLib;
     const pdfDoc = await PDFDocument.create();
 
-    const img = await loadImageFromFile(file);
-    const width = img.naturalWidth || img.width;
-    const height = img.naturalHeight || img.height;
+    const arrayBuffer = await file.arrayBuffer();
+    const bytes = new Uint8Array(arrayBuffer);
 
-    const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0, width, height);
+    let embeddedImage;
+    if (file.type === 'image/png' || file.name.toLowerCase().endsWith('.png')) {
+        embeddedImage = await pdfDoc.embedPng(bytes);
+    } else {
+        embeddedImage = await pdfDoc.embedJpg(bytes);
+    }
 
-    const jpegDataUrl = canvas.toDataURL('image/jpeg', 0.92);
-    const jpegBytes = await fetch(jpegDataUrl).then(r => r.arrayBuffer());
-    const embeddedImage = await pdfDoc.embedJpg(jpegBytes);
+    const imgWidth = embeddedImage.width;
+    const imgHeight = embeddedImage.height;
 
-    const page = pdfDoc.addPage([width, height]);
+    const page = pdfDoc.addPage([imgWidth, imgHeight]);
     page.drawImage(embeddedImage, {
         x: 0,
         y: 0,
-        width,
-        height,
+        width: imgWidth,
+        height: imgHeight,
     });
 
     if (overlayText) {
         const font = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
         page.drawText(overlayText, {
             x: 50,
-            y: height - 50,
+            y: imgHeight - 50,
             size: 20,
             font,
             color: rgb(0.74, 0.07, 0.99),
@@ -189,7 +158,7 @@ async function addTextOverlay() {
     for (let i = 0; i < uploadedFiles.length; i++) {
         const file = uploadedFiles[i];
 
-        if (isPdfFile(file)) {
+        if (file.type === 'application/pdf') {
             const arrayBuffer = await file.arrayBuffer();
             const pdfDoc = await PDFDocument.load(arrayBuffer);
             const helveticaFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
@@ -208,7 +177,7 @@ async function addTextOverlay() {
 
             const pdfBytes = await pdfDoc.save();
             uploadedFiles[i] = new File([pdfBytes], file.name, { type: "application/pdf" });
-        } else if (isImageFile(file)) {
+        } else if (file.type.startsWith('image/')) {
             const pdfBytes = await imageFileToPdf(file, text);
             const pdfName = file.name.replace(/\.[^/.]+$/, '') + '.pdf';
             uploadedFiles[i] = new File([pdfBytes], pdfName, { type: "application/pdf" });
@@ -227,10 +196,10 @@ async function mergeAll() {
         for (const file of uploadedFiles) {
             let sourcePdf;
 
-            if (isPdfFile(file)) {
+            if (file.type === 'application/pdf') {
                 const arrayBuffer = await file.arrayBuffer();
                 sourcePdf = await PDFDocument.load(arrayBuffer);
-            } else if (isImageFile(file)) {
+            } else if (file.type.startsWith('image/')) {
                 const pdfBytes = await imageFileToPdf(file);
                 sourcePdf = await PDFDocument.load(pdfBytes);
             } else {
