@@ -110,6 +110,7 @@ function renderFiles() {
             <div class="order-controls">
                 <button class="btn-order" onclick="moveFile(${index}, -1)" ${index === 0 ? 'disabled' : ''}>↑</button>
                 <button class="btn-order" onclick="moveFile(${index}, 1)" ${index === uploadedFiles.length - 1 ? 'disabled' : ''}>↓</button>
+                <button class="btn-order" onclick="duplicateFile(${index})">DUP</button>
                 <button class="btn-order btn-queue ${item.queued ? 'active' : ''}" onclick="toggleQueue(${index})">QUEUE</button>
             </div>
         `;
@@ -138,6 +139,13 @@ function moveFile(index, direction) {
 
 function toggleQueue(index) {
     uploadedFiles[index].queued = !uploadedFiles[index].queued;
+    renderFiles();
+}
+
+function duplicateFile(index) {
+    const itemToDup = uploadedFiles[index];
+    // Shallow copy item, but it's fine since we don't modify the File object itself in-place usually
+    uploadedFiles.splice(index + 1, 0, { ...itemToDup, queued: false });
     renderFiles();
 }
 
@@ -311,6 +319,7 @@ async function addTextOverlay() {
 }
 
 async function generateFinalPreview() {
+    alert("Preview button clicked! Starting generation...");
     try {
         console.log("Generating final preview...");
         previewTitle.textContent = "Final Document Preview (Generating...)";
